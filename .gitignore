@@ -1,0 +1,93 @@
+# 依赖目录
+node_modules/
+.pnpm-store/
+
+# 构建输出
+dist/
+build/
+*.local
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 编辑器和 IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# 环境变量文件（包含敏感信息）
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# 配置文件（可能包含密钥）
+config.local.*
+secrets.*
+*.pem
+*.key
+
+# 操作系统生成的文件
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+*~
+
+# 测试覆盖率
+coverage/
+*.lcov
+
+# 缓存
+.cache/
+.parcel-cache/
+.eslintcache
+
+# TypeScript 编译输出
+*.tsbuildinfo
+
+# Vite 相关
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Replit 相关
+.replit
+replit.nix
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 数据文件（如果有本地数据库或数据文件）
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# 飞书/K3 Cloud 连接器特定
+# 敏感的 API 配置
+feishu-config.local.*
+kingdee-config.local.*
+api-keys.*
+
+# 备份文件
+*.bak
+*.backup
+
+# 项目资料文件
+连接器资料.txt
+

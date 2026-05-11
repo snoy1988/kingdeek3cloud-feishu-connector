@@ -1,0 +1,644 @@
+{
+  "fieldTypeMap": {
+    "1": {
+      "name": "文本",
+      "description": "文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "2": {
+      "name": "小数",
+      "description": "小数类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0.00"
+      }
+    },
+    "3": {
+      "name": "整数",
+      "description": "整数类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "0"
+      }
+    },
+    "4": {
+      "name": "日期",
+      "description": "日期类型",
+      "fieldType": 1
+    },
+    "5": {
+      "name": "长日期",
+      "description": "长日期类型",
+      "fieldType": 1
+    },
+    "6": {
+      "name": "多行文本",
+      "description": "多行文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "7": {
+      "name": "组织",
+      "description": "组织类型（字符串）",
+      "fieldType": 2,
+      "property": {
+        "formatter": ""
+      }
+    },
+    "8": {
+      "name": "复选框",
+      "description": "布尔类型",
+      "fieldType": 7,
+      "property": {}
+    },
+    "9": {
+      "name": "下拉列表",
+      "description": "枚举类型",
+      "fieldType": 3,
+      "property": {}
+    },
+    "10": {
+      "name": "XML 字段",
+      "description": "XML 类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "11": {
+      "name": "多语言 XML 字段",
+      "description": "多语言 XML 类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "12": {
+      "name": "单据编号",
+      "description": "单据编号类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "13": {
+      "name": "基础资料",
+      "description": "基础资料类型",
+      "fieldType": 2,
+      "property": {}
+    },
+    "14": {
+      "name": "基础资料属性",
+      "description": "基础资料属性类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "15": {
+      "name": "多类别基础资料列表",
+      "description": "多类别基础资料列表类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "16": {
+      "name": "多类别基础资料",
+      "description": "多类别基础资料类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "17": {
+      "name": "创建人",
+      "description": "用户类型",
+      "fieldType": 1
+    },
+    "18": {
+      "name": "用户",
+      "description": "用户类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "19": {
+      "name": "批次",
+      "description": "批次类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "20": {
+      "name": "单价",
+      "description": "价格类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0.00"
+      }
+    },
+    "21": {
+      "name": "金额",
+      "description": "金额类型",
+      "fieldType": 8,
+      "property": {
+        "formatter": "#,##0.00",
+        "currencyCode": "CNY"
+      }
+    },
+    "22": {
+      "name": "数量",
+      "description": "数量类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0.00"
+      }
+    },
+    "23": {
+      "name": "金额数据库加密",
+      "description": "加密金额类型",
+      "fieldType": 8,
+      "property": {
+        "formatter": "#,##0.00"
+      }
+    },
+    "24": {
+      "name": "多选基础资料",
+      "description": "多选基础资料类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "25": {
+      "name": "单选按钮",
+      "description": "单选按钮类型",
+      "fieldType": 3,
+      "property": {}
+    },
+    "26": {
+      "name": "创建日期",
+      "description": "日期类型",
+      "fieldType": 1
+    },
+    "27": {
+      "name": "修改人",
+      "description": "用户类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "28": {
+      "name": "修改日期",
+      "description": "日期类型",
+      "fieldType": 1
+    },
+    "29": {
+      "name": "多选下拉列表",
+      "description": "多选下拉类型",
+      "fieldType": 4,
+      "property": {}
+    },
+    "30": {
+      "name": "单选辅助资料列表",
+      "description": "辅助资料类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "31": {
+      "name": "多选辅助资料列表",
+      "description": "多选辅助资料类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "32": {
+      "name": "单选按钮组",
+      "description": "单选按钮组类型",
+      "fieldType": 3,
+      "property": {}
+    },
+    "33": {
+      "name": "分组",
+      "description": "分组类型",
+      "fieldType": 2,
+      "property": {}
+    },
+    "36": {
+      "name": "多语言文本",
+      "description": "多语言文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "37": {
+      "name": "状态标记",
+      "description": "布尔类型",
+      "fieldType": 7,
+      "property": {}
+    },
+    "39": {
+      "name": "代理字段",
+      "description": "代理字段类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "40": {
+      "name": "单据状态",
+      "description": "状态类型",
+      "fieldType": 3,
+      "property": {}
+    },
+    "41": {
+      "name": "拆单数量",
+      "description": "数量类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0"
+      }
+    },
+    "42": {
+      "name": "可编辑基础资料",
+      "description": "可编辑基础资料类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "43": {
+      "name": "时间",
+      "description": "时间类型",
+      "fieldType": 5,
+      "property": {
+        "formatter": "HH:mm:ss"
+      }
+    },
+    "44": {
+      "name": "单据类型",
+      "description": "单据类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "45": {
+      "name": "大文本",
+      "description": "大文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "46": {
+      "name": "计量单位",
+      "description": "单位类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "0"
+      }
+    },
+    "47": {
+      "name": "基本单位数量",
+      "description": "数量类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0.00"
+      }
+    },
+    "49": {
+      "name": "值集资料列表",
+      "description": "值集类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "50": {
+      "name": "源单类型",
+      "description": "源单类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "51": {
+      "name": "源单编号",
+      "description": "单据编号类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "52": {
+      "name": "基本计量单位",
+      "description": "单位类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "0"
+      }
+    },
+    "53": {
+      "name": "公式编辑器",
+      "description": "公式类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "54": {
+      "name": "折扣率",
+      "description": "比率类型",
+      "fieldType": 11,
+      "property": {
+        "formatter": "0.0%",
+        "min": 0,
+        "max": 100
+      }
+    },
+    "55": {
+      "name": "折扣额",
+      "description": "金额类型",
+      "fieldType": 8,
+      "property": {
+        "formatter": "#,##0.00"
+      }
+    },
+    "56": {
+      "name": "业务流程",
+      "description": "流程类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "58": {
+      "name": "多选组织列表",
+      "description": "多选组织类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "76": {
+      "name": "红蓝字",
+      "description": "标记类型",
+      "fieldType": 3,
+      "property": {}
+    },
+    "77": {
+      "name": "数据库加密文本",
+      "description": "加密文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "82": {
+      "name": "颜色",
+      "description": "颜色类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "83": {
+      "name": "富文本",
+      "description": "富文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "84": {
+      "name": "附件 (数据库)",
+      "description": "附件类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "85": {
+      "name": "富文本内容编辑",
+      "description": "富文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "98": {
+      "name": "判断是否单位浮动换算",
+      "description": "布尔类型",
+      "fieldType": 7,
+      "property": {}
+    },
+    "1000": {
+      "name": "图表字段",
+      "description": "图表类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1011": {
+      "name": "图片 (数据库)",
+      "description": "图片类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1020": {
+      "name": "金额大写控件",
+      "description": "金额大写类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1062": {
+      "name": "进度文本",
+      "description": "进度类型",
+      "fieldType": 11,
+      "property": {
+        "formatter": "0.0%",
+        "min": 0,
+        "max": 100
+      }
+    },
+    "1063": {
+      "name": "移动代理字段",
+      "description": "代理类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1080": {
+      "name": "获取单据类型参数",
+      "description": "参数类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1211": {
+      "name": "附件显示",
+      "description": "附件类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1215": {
+      "name": "基础资料 (过滤)",
+      "description": "过滤基础资料类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1216": {
+      "name": "表格字段",
+      "description": "表格类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1218": {
+      "name": "柱状图",
+      "description": "柱状图类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1219": {
+      "name": "条形图",
+      "description": "条形图类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1220": {
+      "name": "点线图",
+      "description": "点线图类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1221": {
+      "name": "饼图",
+      "description": "饼图类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1222": {
+      "name": "雷达图",
+      "description": "雷达图类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1225": {
+      "name": "搜索框",
+      "description": "搜索类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1226": {
+      "name": "语音播放",
+      "description": "语音类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "1241": {
+      "name": "数值加减",
+      "description": "计算类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0.00"
+      }
+    },
+    "1800": {
+      "name": "组合字段",
+      "description": "组合类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "2011": {
+      "name": "私有下拉列表",
+      "description": "下拉类型",
+      "fieldType": 3,
+      "property": {}
+    },
+    "3205": {
+      "name": "动态文本",
+      "description": "动态文本类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "12108": {
+      "name": "获取系统参数",
+      "description": "参数类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "12841": {
+      "name": "获取单据类型参数",
+      "description": "参数类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "60014": {
+      "name": "附件 (文件服务)",
+      "description": "附件类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "60015": {
+      "name": "图片 (文件服务)",
+      "description": "图片类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "60016": {
+      "name": "多选附件 (文件服务)",
+      "description": "多选附件类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "60520": {
+      "name": "维度组",
+      "description": "维度类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "60523": {
+      "name": "维度关联字段",
+      "description": "关联类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "60527": {
+      "name": "税组合",
+      "description": "税率类型",
+      "fieldType": 11,
+      "property": {
+        "formatter": "0.0%",
+        "min": 0,
+        "max": 100
+      }
+    },
+    "60529": {
+      "name": "附件数",
+      "description": "数量类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0"
+      }
+    },
+    "60532": {
+      "name": "跨组织业务类型",
+      "description": "业务类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "82469": {
+      "name": "打印次数",
+      "description": "次数类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0"
+      }
+    },
+    "82472": {
+      "name": "打印时间",
+      "description": "时间类型",
+      "fieldType": 5,
+      "property": {
+        "formatter": "yyyy-MM-dd HH:mm:ss"
+      }
+    },
+    "82473": {
+      "name": "单据体图片 (文件服务)",
+      "description": "图片类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "82476": {
+      "name": "辅助属性栏",
+      "description": "属性类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "84571": {
+      "name": "打印人",
+      "description": "用户类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "84865": {
+      "name": "套打导出次数",
+      "description": "次数类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0"
+      }
+    },
+    "85738": {
+      "name": "打印操作次数",
+      "description": "次数类型",
+      "fieldType": 2,
+      "property": {
+        "formatter": "#,##0"
+      }
+    },
+    "90018": {
+      "name": "扫描控件",
+      "description": "扫描类型",
+      "fieldType": 1,
+      "property": {}
+    },
+    "90190": {
+      "name": "岗位",
+      "description": "岗位类型",
+      "fieldType": 1,
+      "property": {}
+    }
+  }
+}
