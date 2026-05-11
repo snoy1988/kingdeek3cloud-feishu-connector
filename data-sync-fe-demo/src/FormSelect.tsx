@@ -944,7 +944,7 @@ export default function FormSelect() {
                                     </div>
 
                                     {/* 自定义表单 ID 提示 */}
-                                    {customFormId && filteredForms.length === 0 && (
+                                    {customFormId && !formsList.some(form => form.formId.toLowerCase() === customFormId.toLowerCase()) && (
                                         <div style={{ 
                                             marginBottom: 16, 
                                             padding: '12px', 
@@ -953,7 +953,7 @@ export default function FormSelect() {
                                             borderRadius: '4px'
                                         }}>
                                             <div style={{ fontSize: '13px', color: '#1890ff', marginBottom: '8px' }}>
-                                                💡 未找到匹配的单据，是否使用自定义表单 ID？
+                                                💡 未找到完全匹配的单据，是否使用自定义表单 ID？
                                             </div>
                                             <Button 
                                                 type="primary" 
