@@ -315,7 +315,7 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
+app.listen(9594, () => {
     console.log("Express server initialized");
 });
 

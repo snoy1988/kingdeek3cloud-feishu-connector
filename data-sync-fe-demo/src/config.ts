@@ -1,7 +1,7 @@
 // 应用配置
 export const APP_CONFIG = {
     // 后端 API 地址
-    BACKEND_API_URL: 'https://b19e-240e-34c-311-fe1-1cdf-70d4-9a7c-694e.ngrok-free.app',
+    BACKEND_API_URL: 'https://project.ynkingdee.com:9595',
     
     // 金蝶云星空默认服务器地址
     KINGDEE_DEFAULT_SERVER_URL: 'https://my.kingdee.com',

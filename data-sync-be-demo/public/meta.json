@@ -4,7 +4,7 @@
   "type": "data_connector",
   "extraData": {
     "disabledPeriodicSync": false,
-    "dataSourceConfigUiUri": "https://832cd6eo8394.vicp.fun",
+    "dataSourceConfigUiUri": "https://project.ynkingdee.com:9596",
     "initHeight": 900,
     "initWidth": 800
   },
