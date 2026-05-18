@@ -470,6 +470,26 @@ export default function FormSelect() {
         // 只保存用户选择的字段
         let selectedFields = fields.filter(field => selectedFieldKeys.includes(field.Key));
         
+        // 处理组织和基础资料字段，自动添加编码和名称字段
+        const expandedFields: MetadataField[] = [];
+        const processedKeys = new Set<string>();
+        
+        for (const field of selectedFields) {
+            // 如果已经处理过该字段，跳过
+            if (processedKeys.has(field.Key)) {
+                continue;
+            }
+            
+            // 添加原字段
+            expandedFields.push(field);
+            processedKeys.add(field.Key);
+            
+            // 处理特殊类型字段（组织、基础资料、计量单位、用户类型）
+            processSpecialFieldType(field, fields, expandedFields, processedKeys);
+        }
+        
+        selectedFields = expandedFields;
+        
         // 将主键字段添加到第一个位置
         let pkField = fields.find(field => field.Key === pkFieldName);
         
@@ -611,6 +631,26 @@ export default function FormSelect() {
         // 只保存用户选择的字段
         let selectedFields = fields.filter(field => selectedFieldKeys.includes(field.Key));
         
+        // 处理组织和基础资料字段，自动添加编码和名称字段
+        const expandedFields: MetadataField[] = [];
+        const processedKeys = new Set<string>();
+        
+        for (const field of selectedFields) {
+            // 如果已经处理过该字段，跳过
+            if (processedKeys.has(field.Key)) {
+                continue;
+            }
+            
+            // 添加原字段
+            expandedFields.push(field);
+            processedKeys.add(field.Key);
+            
+            // 处理特殊类型字段（组织、基础资料、计量单位、用户类型）
+            processSpecialFieldType(field, fields, expandedFields, processedKeys);
+        }
+        
+        selectedFields = expandedFields;
+        
         // 将主键字段添加到第一个位置
         let pkField = fields.find(field => field.Key === pkFieldName);
         
@@ -729,6 +769,104 @@ export default function FormSelect() {
     const handleFieldFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const keyword = e.target.value.toLowerCase();
         setFieldSearchText(keyword);
+    };
+
+    /**
+     * 处理特殊类型字段，自动添加编码和名称字段
+     * @param field 原始字段
+     * @param fields 所有可用字段列表
+     * @param expandedFields 已扩展的字段列表（会被修改）
+     * @param processedKeys 已处理的字段Key集合（会被修改）
+     */
+    const processSpecialFieldType = (
+        field: MetadataField,
+        fields: MetadataField[],
+        expandedFields: MetadataField[],
+        processedKeys: Set<string>
+    ) => {
+        const baseKey = field.Key;
+        
+        // 定义需要添加编码字段的类型：组织、基础资料、计量单位、多类别基础资料
+        const needNumberFieldTypes = [7, 13, 16, 46, 51];
+        // 定义需要添加名称字段的类型：组织、基础资料、计量单位、多类别基础资料、用户类型
+        const needNameFieldTypes = [7, 13, 16, 46, 51, 17, 18, 27, 84517];
+        
+        const elementType = field.ElementType;
+        if (!elementType) return; // 如果没有 ElementType，直接返回
+        
+        const needNumber = needNumberFieldTypes.includes(elementType);
+        const needName = needNameFieldTypes.includes(elementType);
+        
+        // 如果都不需要，直接返回
+        if (!needNumber && !needName) return;
+        
+        console.log(`=== 处理特殊类型字段 (ElementType=${elementType}) ===`);
+        console.log('原字段 Key:', baseKey);
+        console.log('原字段 Name:', field.Name);
+        
+        // 添加编码字段（如果需要）
+        if (needNumber) {
+            let numberField = fields.find(f => f.Key === `${baseKey}.FNumber`);
+            
+            if (!numberField) {
+                console.log('未找到编码字段，手动创建:', `${baseKey}.FNumber`);
+                numberField = {
+                    Key: `${baseKey}.FNumber`,
+                    FieldName: `${baseKey}.FNumber`,
+                    PropertyName: `${baseKey}.FNumber`,
+                    Name: `${field.Name}编码`,
+                    EntityKey: field.EntityKey,
+                    EntityName: field.EntityName,
+                    DataType: '文本',
+                    ElementType: 1,
+                    FieldType: 1,
+                    Property: {},
+                    PkFieldName: field.PkFieldName
+                };
+            }
+            
+            if (!processedKeys.has(numberField.Key)) {
+                expandedFields.push({
+                    ...numberField,
+                    Name: `${field.Name}编码`,
+                    DataType: '文本'
+                });
+                processedKeys.add(numberField.Key);
+                console.log('已添加编码字段:', numberField.Key);
+            }
+        }
+        
+        // 添加名称字段（如果需要）
+        if (needName) {
+            let nameField = fields.find(f => f.Key === `${baseKey}.FName`);
+            
+            if (!nameField) {
+                console.log('未找到名称字段，手动创建:', `${baseKey}.FName`);
+                nameField = {
+                    Key: `${baseKey}.FName`,
+                    FieldName: `${baseKey}.FName`,
+                    PropertyName: `${baseKey}.FName`,
+                    Name: `${field.Name}名称`,
+                    EntityKey: field.EntityKey,
+                    EntityName: field.EntityName,
+                    DataType: '文本',
+                    ElementType: 1,
+                    FieldType: 1,
+                    Property: {},
+                    PkFieldName: field.PkFieldName
+                };
+            }
+            
+            if (!processedKeys.has(nameField.Key)) {
+                expandedFields.push({
+                    ...nameField,
+                    Name: `${field.Name}名称`,
+                    DataType: '文本'
+                });
+                processedKeys.add(nameField.Key);
+                console.log('已添加名称字段:', nameField.Key);
+            }
+        }
     };
 
     // 获取过滤后的字段列表
