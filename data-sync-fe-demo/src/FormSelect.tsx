@@ -56,7 +56,7 @@ export default function FormSelect() {
     const [pkFieldName, setPkFieldName] = useState<string>('FID'); // 单据主键字段名
     const [pkFieldElementType, setPkFieldElementType] = useState<number>(3); // 主键字段 ElementType（默认 3=整数）
     const [pkFieldDataType, setPkFieldDataType] = useState<string>('整数'); // 主键字段 DataType 名称
-    const [pkFieldProperty, setPkFieldProperty] = useState<any>({ formatter: "#0" }); // 主键字段 Property
+    const [pkFieldProperty, setPkFieldProperty] = useState<any>({}); // 主键字段 Property
     const [filterCondition, setFilterCondition] = useState<string>(''); // 过滤条件
     const [isCreate, setIsCreate] = useState<boolean>(true); // 是否为新增模式
     const [customFormId, setCustomFormId] = useState<string>(''); // 用户自定义表单 ID
@@ -423,12 +423,20 @@ export default function FormSelect() {
                         if (!isCreate && savedConfig && savedConfig.SelectedFormId === formId) {
                             if (savedConfig.SelectedFields && Array.isArray(savedConfig.SelectedFields)) {
                                 const savedFieldKeys = savedConfig.SelectedFields.map((field: any) => field.Key);
-                                // 过滤出存在的字段
-                                const validFieldKeys = savedFieldKeys.filter((key: string) => 
-                                    fieldList.some(field => field.Key === key)
-                                );
+                                
+                                // 过滤出存在的字段，并且排除自动添加的 .FNumber 和 .FName 字段
+                                // 只保留用户手动选择的原始字段
+                                const validFieldKeys = savedFieldKeys.filter((key: string) => {
+                                    // 检查字段是否存在于 fieldList 中
+                                    const existsInFields = fieldList.some(field => field.Key === key);
+                                    // 排除自动添加的编码和名称字段（以 .FNumber 或 .FName 结尾）
+                                    const isAutoAdded = key.endsWith('.FNumber') || key.endsWith('.FName');
+                                    return existsInFields && !isAutoAdded;
+                                });
+                                
                                 setSelectedFieldKeys(validFieldKeys);
                                 console.log('修改模式：恢复已选字段', validFieldKeys.length, '个');
+                                console.log('恢复的字段 Keys:', validFieldKeys);
                             }
                         } else {
                             console.log('修改模式：选择了其他单据，不恢复字段');
@@ -513,7 +521,7 @@ export default function FormSelect() {
             pkField = {
                 Key: pkFieldName,
                 FieldName: pkFieldName,
-                PropertyName: '',
+                PropertyName: pkFieldName,
                 Name: 'ID',
                 EntityKey: '',
                 EntityName: '',
@@ -554,6 +562,28 @@ export default function FormSelect() {
             
             console.log('保存编辑后的配置:', parsedData);
             
+            // 重新处理特殊类型字段，确保编码和名称字段不丢失
+            let selectedFields = parsedData.SelectedFields || [];
+            const expandedFields: MetadataField[] = [];
+            const processedKeys = new Set<string>();
+            
+            for (const field of selectedFields) {
+                // 如果已经处理过该字段，跳过
+                if (processedKeys.has(field.Key)) {
+                    continue;
+                }
+                
+                // 添加原字段
+                expandedFields.push(field);
+                processedKeys.add(field.Key);
+                
+                // 处理特殊类型字段（组织、基础资料、计量单位、用户类型）
+                processSpecialFieldType(field, fields, expandedFields, processedKeys);
+            }
+            
+            selectedFields = expandedFields;
+            console.log('编辑后重新处理的字段数:', selectedFields.length);
+            
             // 获取飞书信息
             const baseUserId = await bitable.getUserId();
             const tenantKey = await bitable.getTenantKey();
@@ -570,6 +600,7 @@ export default function FormSelect() {
             // 准备保存到后端的数据
             const backendSaveData = {
                 ...parsedData,
+                SelectedFields: selectedFields,
                 BaseUserId: baseUserId,
                 TenantKey: tenantKey,
                 FileName: fileName,
@@ -674,7 +705,7 @@ export default function FormSelect() {
             pkField = {
                 Key: pkFieldName,
                 FieldName: pkFieldName,
-                PropertyName: '',
+                PropertyName: pkFieldName,
                 Name: 'ID',
                 EntityKey: '',
                 EntityName: '',
