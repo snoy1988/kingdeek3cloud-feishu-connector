@@ -33,26 +33,11 @@ async function kingdeeLogin({ serverUrl, acctId, userName, appId, appSec, lcid }
         const sign = hash.digest('hex');
         // ============================================
         
-        console.log('登录参数:', {
-            serverUrl,
-            acctId,
-            userName,
-            appId,
-            timestamp,
-            sign,
-            lcid
-        });
-        
         // 构建登录 URL
         const url = `${serverUrl}/K3Cloud/Kingdee.BOS.WebApi.ServicesStub.AuthService.LoginBySign.common.kdsvc`;
         
         // 构建请求参数（注意顺序：账套 ID、用户名、应用 ID、时间戳、签名、语言 ID）
         const parameters = [acctId, userName, appId, timestamp, sign, lcid || 2052];
-        
-        console.log('调用金蝶登录接口:', {
-            url,
-            parameters
-        });
         
         const response = await fetch(url, {
             method: 'POST',
@@ -69,11 +54,10 @@ async function kingdeeLogin({ serverUrl, acctId, userName, appId, appSec, lcid }
         }
         
         const result = await response.json();
-        console.log('金蝶登录响应:', result);
         
         return result;
     } catch (error) {
-        console.error('金蝶登录失败:', error);
+        console.error('金蝶登录失败:', error.message);
         throw error;
     }
 }
@@ -94,12 +78,6 @@ async function queryBusinessInfo({ serverUrl, formId, sessionId }) {
             FormId: formId
         };
 
-        console.log('调用金蝶元数据接口:', {
-            url,
-            formId,
-            sessionId
-        });
-
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -116,11 +94,10 @@ async function queryBusinessInfo({ serverUrl, formId, sessionId }) {
         }
 
         const result = await response.json();
-        console.log('金蝶元数据响应:', result);
         
         return result;
     } catch (error) {
-        console.error('查询金蝶元数据失败:', error);
+        console.error('查询金蝶元数据失败:', error.message);
         throw error;
     }
 }
@@ -195,18 +172,6 @@ async function executeBillQuery({
         
         const requestBody = queryParams;
 
-        console.log('调用金蝶单据查询接口:', {
-            url,
-            formId,
-            fieldKeys,
-            filterString,
-            orderString,
-            topRowCount,
-            startRow,
-            limit,
-            sessionId
-        });
-
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -223,11 +188,10 @@ async function executeBillQuery({
         }
 
         const result = await response.json();
-        console.log('金蝶单据查询响应:', result);
         
         return result;
     } catch (error) {
-        console.error('执行金蝶单据查询失败:', error);
+        console.error('执行金蝶单据查询失败:', error.message);
         throw error;
     }
 }
@@ -245,7 +209,6 @@ async function executeBillQuery({
  */
 async function getKDSessionId(datasourceConfig) {
     try {
-        console.log('调用金蝶登录获取 SessionId...');
         const loginResult = await kingdeeLogin({
             serverUrl: datasourceConfig.ServerUrl,
             acctId: datasourceConfig.AcctID,
@@ -256,15 +219,12 @@ async function getKDSessionId(datasourceConfig) {
         });
         
         if (loginResult.LoginResultType === 1 && loginResult.KDSVCSessionId) {
-            const sessionId = loginResult.KDSVCSessionId;
-            console.log('登录成功，SessionId:', sessionId);
-            return sessionId;
+            return loginResult.KDSVCSessionId;
         } else {
-            console.warn('登录未返回 SessionId');
             return '';
         }
     } catch (error) {
-        console.error('登录失败:', error.message);
+        console.error('获取 SessionId 失败:', error.message);
         return '';
     }
 }

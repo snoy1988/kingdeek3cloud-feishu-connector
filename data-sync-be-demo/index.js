@@ -42,9 +42,6 @@ app.get("/meta.json", (req, res) => {
 });
 
 app.post("/api/table_meta", async (req, res) => {
-    console.log("=== table_meta 请求开始 ===");
-    console.log("table_meta 的请求数据", req.body);
-
     try {
         // 从请求中获取 params（params 是字符串，需要解析）
         let params;
@@ -72,14 +69,10 @@ app.post("/api/table_meta", async (req, res) => {
         // 根据 SelectedFields 生成表结构
         const tableMeta = generateTableMeta(datasourceConfig);
         
-        console.log("生成的表结构:", tableMeta);
-        console.log("=== table_meta 请求结束 ===");
-        
         const result = { code: 0, message: "POST 请求成功", data: tableMeta };
         res.status(200).json(result);
     } catch (error) {
-        console.error("=== table_meta 错误 ===");
-        console.error("生成表结构失败:", error);
+        console.error("生成表结构失败:", error.message);
         
         res.status(500).json({
             code: 500,
@@ -91,8 +84,6 @@ app.post("/api/table_meta", async (req, res) => {
 
 app.post("/api/records", async (req, res) => {
     try {
-        console.log("=== records 请求开始 ===");
-        console.log("table_records 的请求数据", req.body);
         
         // 从请求中获取 params（params 是字符串，需要解析）
         let params;
@@ -118,10 +109,31 @@ app.post("/api/records", async (req, res) => {
         const selectedFields = datasourceConfig.SelectedFields || [];
         const fieldKeys = selectedFields.map(field => field.Key).join(',');
         
-        console.log('需要查询的字段 Keys:', fieldKeys);
+        // 获取主键字段名（可能是逗号分隔的多个字段）
+        const pkFieldNameStr = datasourceConfig.PkFieldName || 'FID';
+        const pkFieldKeys = pkFieldNameStr.split(',').map(key => key.trim());
         
         // 调用金蝶登录获取 SessionId
         const sessionId = await getKDSessionId(datasourceConfig);
+        
+        // 计算分页参数
+        const defaultPageSize = 200; // 默认每页大小
+        let pageIndex = 0;
+        
+        // 从 pageToken 获取当前页码
+        if(params.pageToken !== undefined && params.pageToken !== null && params.pageToken !== ""){
+            pageIndex = parseInt(params.pageToken, 10);
+        }
+        
+        // 计算起始行号：优先使用 params.StartRow，否则根据 pageToken 计算
+        let calculatedStartRow = 0;
+        if (params.StartRow !== undefined && params.StartRow !== null) {
+            // 如果前端传了 StartRow，直接使用（兼容首次同步）
+            calculatedStartRow = params.StartRow;
+        } else {
+            // 否则根据 pageToken 计算（再次同步时使用）
+            calculatedStartRow = pageIndex * defaultPageSize;
+        }
         
         // 构建查询参数
         const queryParams = {
@@ -129,13 +141,9 @@ app.post("/api/records", async (req, res) => {
             formId: datasourceConfig.SelectedFormId,
             fieldKeys: fieldKeys,
             sessionId: sessionId,
-            limit:500,
-            startRow:0,
+            limit: defaultPageSize,
+            startRow: calculatedStartRow,
         };
-        let pageIndex=0;
-        if(params.pageToken !== undefined && params.pageToken !== null && params.pageToken != ""){
-            pageIndex = parseInt(params.pageToken, 10);
-        }
         
         // 可选参数（如果前端传了就使用）
         if (datasourceConfig.FilterCondition) {
@@ -150,20 +158,12 @@ app.post("/api/records", async (req, res) => {
             queryParams.topRowCount = params.TopRowCount;
         }
         
-        if (params.StartRow !== undefined && params.StartRow !== null) {
-            queryParams.startRow = params.StartRow;
-        }
-        
         if (params.Limit !== undefined && params.Limit !== null) {
             queryParams.limit = params.Limit;
         }
         
-        console.log('调用 executeBillQuery 参数:', queryParams);
-        
         // 调用 executeBillQuery 获取数据
         const result = await executeBillQuery(queryParams);
-        
-        console.log('records 查询结果:', result);
         
         // 将金蝶返回的二维数组转换为 getTableRecords 格式
         const formattedRecords = {
@@ -180,7 +180,7 @@ app.post("/api/records", async (req, res) => {
             // 遍历每一行数据
             result.forEach((row, index) => {
                 const record = {
-                    primaryId: `record_${index + 1}`,
+                    primaryId: '',
                     data: {}
                 };
                 
@@ -188,16 +188,32 @@ app.post("/api/records", async (req, res) => {
                 if (Array.isArray(row)) {
                     selectedFields.forEach((field, fieldIndex) => {
                         const fieldId = field.Key; // 使用 Key 作为 fieldId
-                        record.data[fieldId] = row[fieldIndex];
+                        const fieldValue = row[fieldIndex];
+                        record.data[fieldId] = fieldValue;
                     });
+                    
+                    // 根据 PkFieldName 生成 primaryId（用下划线拼接多个主键字段的值）
+                    const pkValues = [];
+                    pkFieldKeys.forEach(pkKey => {
+                        // 找到主键字段在 selectedFields 中的索引
+                        const pkFieldIndex = selectedFields.findIndex(f => f.Key === pkKey);
+                        if (pkFieldIndex !== -1 && row[pkFieldIndex] !== undefined && row[pkFieldIndex] !== null) {
+                            pkValues.push(String(row[pkFieldIndex]));
+                        }
+                    });
+                    
+                    // 如果找到了主键值，用下划线拼接；否则使用后备方案
+                    if (pkValues.length > 0) {
+                        record.primaryId = pkValues.join('_');
+                    } else {
+                        // 后备方案：使用索引
+                        record.primaryId = `record_${calculatedStartRow + index + 1}`;
+                    }
                 }
                 
                 formattedRecords.records.push(record);
             });
         }
-        
-        console.log('格式化后的记录:', formattedRecords);
-        console.log("=== records 请求结束 ===");
         
         // 返回结果
         res.status(200).json({
@@ -206,8 +222,7 @@ app.post("/api/records", async (req, res) => {
             data: formattedRecords
         });
     } catch (error) {
-        console.error("=== records 错误 ===");
-        console.error("查询记录失败:", error);
+        console.error("查询记录失败:", error.message);
         
         res.status(500).json({
             code: 500,

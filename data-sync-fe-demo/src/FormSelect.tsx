@@ -53,10 +53,6 @@ export default function FormSelect() {
     const [fieldsPanelExpanded, setFieldsPanelExpanded] = useState<boolean>(true); // 字段列表展开状态
     const [showSelectedOnly, setShowSelectedOnly] = useState<boolean>(false); // 是否只显示已选字段
     const [kingdeeFieldTypeMap, setKingdeeFieldTypeMap] = useState<any>({}); // 金蝶字段类型映射
-    const [pkFieldName, setPkFieldName] = useState<string>('FID'); // 单据主键字段名
-    const [pkFieldElementType, setPkFieldElementType] = useState<number>(3); // 主键字段 ElementType（默认 3=整数）
-    const [pkFieldDataType, setPkFieldDataType] = useState<string>('整数'); // 主键字段 DataType 名称
-    const [pkFieldProperty, setPkFieldProperty] = useState<any>({}); // 主键字段 Property
     const [filterCondition, setFilterCondition] = useState<string>(''); // 过滤条件
     const [isCreate, setIsCreate] = useState<boolean>(true); // 是否为新增模式
     const [customFormId, setCustomFormId] = useState<string>(''); // 用户自定义表单 ID
@@ -218,7 +214,6 @@ export default function FormSelect() {
             });
 
             const result = await response.json();
-            debugger;
             console.log('后端代理响应:', result);
 
             if (result.code === 0 && result.data) {
@@ -229,17 +224,13 @@ export default function FormSelect() {
                     // 从返回结果中提取字段信息
                     const needReturnData = kingdeeResult.Result.NeedReturnData;
                     
-                    console.log('NeedReturnData:', needReturnData);
-                    
                     // 获取单据主键字段
                     const pkFieldName = needReturnData.PkFieldName || 'FID';
                     const pkFieldType = needReturnData.PkFieldType; // 获取主键字段类型
                     
                     console.log('=== 查询到单据主键字段 ===');
                     console.log('pkFieldName:', pkFieldName);
-                    console.log('needReturnData.PkFieldName:', needReturnData.PkFieldName);
                     console.log('needReturnData.PkFieldType:', pkFieldType);
-                    debugger;
                     
                     // 根据 PkFieldType 匹配金蝶字段类型
                     let pkElementType = 3; // 默认整数类型
@@ -285,14 +276,6 @@ export default function FormSelect() {
                         }
                     }
                     
-                    // 保存主键字段信息到 state（供后续构建默认主键字段时使用）
-                    setPkFieldName(pkFieldName);
-                    setPkFieldElementType(pkElementType);
-                    setPkFieldDataType(pkDataTypeName);
-                    setPkFieldProperty(pkProperty);
-                    console.log('已设置 pkFieldName state:', pkFieldName);
-                    console.log('已设置主键字段类型信息:', { ElementType: pkElementType, DataType: pkDataTypeName, Property: pkProperty });
-                    
                     // 解析字段信息（支持多种数据结构）
                     let fieldList: MetadataField[] = [];
                     
@@ -336,11 +319,55 @@ export default function FormSelect() {
                     // 情况 2: 包含 Entrys 数组，每个 entry 有自己的 Fields
                     else if (needReturnData.Entrys && Array.isArray(needReturnData.Entrys)) {
                         console.log('从 Entrys 中提取字段，Entrys 数量:', needReturnData.Entrys.length);
+                        
                         // 遍历所有 entry（可能有多个单据体）
                         needReturnData.Entrys.forEach((entry: any, index: number) => {
                             console.log(`处理 Entry ${index}:`, entry.Key);
+                            
                             if (entry.Fields && Array.isArray(entry.Fields)) {
                                 console.log(`  Entry ${entry.Key} 包含 ${entry.Fields.length} 个字段`);
+                                
+                                // 获取 entry 的信息
+                                const entryKey = entry.Key; // 如 "FEntity", "FBillHead"
+                                const entryPkFieldNameRaw = entry.EntryPkFieldName || 'FID'; // 如 "FEntryID", "FID"
+                                
+                                // 根据规则生成 Entry 主键字段的 Key
+                                // 如果 needReturnData.PkFieldName == entry.EntryPkFieldName，使用 entry.EntryPkFieldName
+                                // 否则用 entry.Key + "_" + entry.EntryPkFieldName
+                                let entryPkFieldName: string;
+                                if (needReturnData.PkFieldName === entryPkFieldNameRaw) {
+                                    entryPkFieldName = entryPkFieldNameRaw;
+                                } else {
+                                    entryPkFieldName = `${entryKey}_${entryPkFieldNameRaw}`;
+                                }
+                                
+                                const entryName = (() => {
+                                    if (entry.Name && Array.isArray(entry.Name)) {
+                                        return getNameByLanguageId(entry.Name, languageId);
+                                    }
+                                    return entry.EntryName || entry.entryName || '';
+                                })();
+                                
+                                console.log(`  Entry ${entryKey} 主键字段: ${entryPkFieldName} (原始: ${entryPkFieldNameRaw}), 名称: ${entryName}`);
+                                
+                                // 添加 entry 的主键字段到字段列表（主键不在 entry.Fields 中，需要手动添加）
+                                const pkField: MetadataField = {
+                                    Key: entryPkFieldName,
+                                    FieldName: entryPkFieldName,
+                                    PropertyName: entryPkFieldName,
+                                    Name: `${entryName}主键`,
+                                    EntityKey: entryKey,
+                                    EntityName: entryName,
+                                    DataType: '整数',
+                                    ElementType: 3, // 整数类型
+                                    FieldType: 2, // 飞书字段类型：数字
+                                    Property: { formatter: "#0" },
+                                    PkFieldName: entryPkFieldName // 主键字段的 PkFieldName 指向自己
+                                };
+                                
+                                fieldList.push(pkField);
+                                
+                                // 处理 entry 的其他字段
                                 const entryFields = entry.Fields.map((field: any) => {
                                     // 将金蝶的 ElementType 转换为前端显示的字段类型名称
                                     let dataTypeName = '文本'; // 默认值
@@ -360,25 +387,21 @@ export default function FormSelect() {
                                         FieldName: field.FieldName || field.fieldName || '',
                                         PropertyName: field.PropertyName || field.propertyName || '',
                                         Name: getNameByLanguageId(field.Name, languageId) || field.Key || '未知字段',
-                                        EntityKey: field.EntityKey || field.entityKey || entry.Key || '',
-                                        EntityName: (() => {
-                                            // 从 Entry 的 Name 数组中获取实体名称
-                                            if (entry.Name && Array.isArray(entry.Name)) {
-                                                return getNameByLanguageId(entry.Name, languageId);
-                                            }
-                                            return entry.EntryName || entry.entryName || '';
-                                        })(),
+                                        EntityKey: field.EntityKey || field.entityKey || entryKey,
+                                        EntityName: entryName,
                                         DataType: dataTypeName,
-                                        ElementType: elementType, // 保存 ElementType 用于后续处理，但不显示
-                                        FieldType: fieldType, // 保存飞书字段类型用于后续处理，但不显示
-                                        Property: property, // 保存属性配置用于后续处理，但不显示
-                                        PkFieldName: pkFieldName // 保存主键字段名
+                                        ElementType: elementType,
+                                        FieldType: fieldType,
+                                        Property: property,
+                                        PkFieldName: entryPkFieldName // 普通字段的 PkFieldName 指向所属 entry 的主键
                                     };
                                 });
+                                
                                 console.log(`  Entry ${entry.Key} 解析后得到 ${entryFields.length} 个字段`);
                                 fieldList = fieldList.concat(entryFields);
                             }
                         });
+                        
                         console.log('所有 Entrys 解析完成，总字段数:', fieldList.length);
                     }
                     // 情况 3: 直接是数组
@@ -437,6 +460,25 @@ export default function FormSelect() {
                                 setSelectedFieldKeys(validFieldKeys);
                                 console.log('修改模式：恢复已选字段', validFieldKeys.length, '个');
                                 console.log('恢复的字段 Keys:', validFieldKeys);
+                                
+                                // 联动勾选 Entry 主键：根据恢复的字段，自动勾选对应的 Entry 主键
+                                setTimeout(() => {
+                                    const fieldsToCheck = [...validFieldKeys]; // 复制一份，避免在迭代中修改
+                                    fieldsToCheck.forEach(fieldKey => {
+                                        const field = fieldList.find(f => f.Key === fieldKey);
+                                        if (field && field.PkFieldName) {
+                                            // 如果该字段的 Entry 主键还没有被勾选，则自动勾选
+                                            if (!validFieldKeys.includes(field.PkFieldName)) {
+                                                validFieldKeys.push(field.PkFieldName);
+                                                console.log(`修改模式：自动联动勾选 Entry 主键 ${field.PkFieldName}`);
+                                            }
+                                        }
+                                    });
+                                    // 去重后更新
+                                    const uniqueKeys: string[] = Array.from(new Set(validFieldKeys));
+                                    setSelectedFieldKeys(uniqueKeys);
+                                    console.log('修改模式：最终选中的字段', uniqueKeys.length, '个');
+                                }, 100); // 延迟执行，确保 fields 已经设置完成
                             }
                         } else {
                             console.log('修改模式：选择了其他单据，不恢复字段');
@@ -498,54 +540,41 @@ export default function FormSelect() {
         
         selectedFields = expandedFields;
         
-        // 将主键字段添加到第一个位置
-        let pkField = fields.find(field => field.Key === pkFieldName);
+        // 收集所有有字段被选中的 Entry 的主键字段名（忽略大小写去重）
+        const selectedEntryPkFieldsMap = new Map<string, string>(); // key: 小写, value: 原始值
+        selectedFields.forEach(field => {
+            if (field.PkFieldName) {
+                const lowerKey = field.PkFieldName.toLowerCase();
+                // 如果还没有这个主键（忽略大小写），则添加
+                if (!selectedEntryPkFieldsMap.has(lowerKey)) {
+                    selectedEntryPkFieldsMap.set(lowerKey, field.PkFieldName);
+                }
+            }
+        });
         
-        console.log('=== 开始处理主键字段 ===');
-        console.log('pkFieldName:', pkFieldName);
-        console.log('fields 中找到的 pkField:', pkField);
-        debugger;
+        const selectedEntryPkFields = Array.from(selectedEntryPkFieldsMap.values());
+        console.log('选中的 Entry 主键字段:', selectedEntryPkFields);
         
-        if (pkField) {
-            console.log('主键字段已存在，进行去重和置顶处理');
-            // 确保主键字段不重复（如果已经在 selectedFields 中，先移除）
-            const filteredSelectedFields = selectedFields.filter(f => f.Key !== pkFieldName);
-            // 将主键字段放到第一位
-            selectedFields = [pkField, ...filteredSelectedFields];
-            console.log('处理后的 selectedFields:', selectedFields);
-        } else {
-            console.log('主键字段不存在，构建默认主键字段对象');
-            debugger;
-            // 如果 fields 中没有找到主键字段，则构建一个默认的 MetadataField 对象
-            // 使用从 PkFieldType 解析出的类型信息
-            pkField = {
-                Key: pkFieldName,
-                FieldName: pkFieldName,
-                PropertyName: pkFieldName,
-                Name: 'ID',
-                EntityKey: '',
-                EntityName: '',
-                DataType: pkFieldDataType, // 使用解析出的数据类型
-                ElementType: pkFieldElementType, // 使用解析出的 ElementType
-                FieldType: 2, // 飞书字段类型：数字（整数和小数都是 2）
-                Property: pkFieldProperty, // 使用解析出的 Property 配置
-                PkFieldName: pkFieldName
-            };
-            console.log('构建的默认主键字段:', pkField);
-            console.log('使用的类型配置:', { DataType: pkFieldDataType, ElementType: pkFieldElementType, Property: pkFieldProperty });
-            // 将构建的主键字段放到第一位
-            selectedFields = [pkField, ...selectedFields];
-            console.log('添加默认主键后的 selectedFields:', selectedFields);
-        }
+        // 确保所有 Entry 主键字段都在 selectedFields 中
+        selectedEntryPkFields.forEach(pkFieldName => {
+            if (!processedKeys.has(pkFieldName)) {
+                const pkField = fields.find(f => f.Key === pkFieldName);
+                if (pkField) {
+                    selectedFields.unshift(pkField); // 添加到前面
+                    processedKeys.add(pkFieldName);
+                    console.log('自动添加 Entry 主键字段:', pkFieldName);
+                }
+            }
+        });
         
-        console.log('=== 主键字段处理完成 ===');
-        debugger;
+        // 构建 PkFieldName 字符串（所有 Entry 主键去重后用逗号拼接）
+        const allPkFieldNames = selectedEntryPkFields.join(',');
         
         const saveData = {
             ...formData,
             SelectedFormId: selectedForm,
             SelectedFields: selectedFields,
-            PkFieldName: pkFieldName || 'FID',
+            PkFieldName: allPkFieldNames || 'FID', // 如果没有 Entry 主键，使用默认 FID
             FilterCondition: filterCondition // 过滤条件
         };
         
@@ -682,59 +711,47 @@ export default function FormSelect() {
         
         selectedFields = expandedFields;
         
-        // 将主键字段添加到第一个位置
-        let pkField = fields.find(field => field.Key === pkFieldName);
+        // 收集所有有字段被选中的 Entry 的主键字段名（忽略大小写去重）
+        const selectedEntryPkFieldsMap = new Map<string, string>(); // key: 小写, value: 原始值
+        selectedFields.forEach(field => {
+            if (field.PkFieldName) {
+                const lowerKey = field.PkFieldName.toLowerCase();
+                // 如果还没有这个主键（忽略大小写），则添加
+                if (!selectedEntryPkFieldsMap.has(lowerKey)) {
+                    selectedEntryPkFieldsMap.set(lowerKey, field.PkFieldName);
+                }
+            }
+        });
         
-        console.log('=== [handleSaveAndContinue] 开始处理主键字段 ===');
-        console.log('pkFieldName:', pkFieldName);
-        console.log('fields 中找到的 pkField:', pkField);
-        debugger;
+        const selectedEntryPkFields = Array.from(selectedEntryPkFieldsMap.values());
+        console.log('[handleSaveAndContinue] 选中的 Entry 主键字段:', selectedEntryPkFields);
         
-        if (pkField) {
-            console.log('主键字段已存在，进行去重和置顶处理');
-            // 确保主键字段不重复（如果已经在 selectedFields 中，先移除）
-            const filteredSelectedFields = selectedFields.filter(f => f.Key !== pkFieldName);
-            // 将主键字段放到第一位
-            selectedFields = [pkField, ...filteredSelectedFields];
-            console.log('处理后的 selectedFields:', selectedFields);
-        } else {
-            console.log('主键字段不存在，构建默认主键字段对象');
-            debugger;
-            // 如果 fields 中没有找到主键字段，则构建一个默认的 MetadataField 对象
-            // 使用从 PkFieldType 解析出的类型信息
-            pkField = {
-                Key: pkFieldName,
-                FieldName: pkFieldName,
-                PropertyName: pkFieldName,
-                Name: 'ID',
-                EntityKey: '',
-                EntityName: '',
-                DataType: pkFieldDataType, // 使用解析出的数据类型
-                ElementType: pkFieldElementType, // 使用解析出的 ElementType
-                FieldType: 2, // 飞书字段类型：数字（整数和小数都是 2）
-                Property: pkFieldProperty, // 使用解析出的 Property 配置
-                PkFieldName: pkFieldName
-            };
-            console.log('构建的默认主键字段:', pkField);
-            console.log('使用的类型配置:', { DataType: pkFieldDataType, ElementType: pkFieldElementType, Property: pkFieldProperty });
-            // 将构建的主键字段放到第一位
-            selectedFields = [pkField, ...selectedFields];
-            console.log('添加默认主键后的 selectedFields:', selectedFields);
-        }
+        // 确保所有 Entry 主键字段都在 selectedFields 中
+        selectedEntryPkFields.forEach(pkFieldName => {
+            if (!processedKeys.has(pkFieldName)) {
+                const pkField = fields.find(f => f.Key === pkFieldName);
+                if (pkField) {
+                    selectedFields.unshift(pkField); // 添加到前面
+                    processedKeys.add(pkFieldName);
+                    console.log('[handleSaveAndContinue] 自动添加 Entry 主键字段:', pkFieldName);
+                }
+            }
+        });
         
-        console.log('=== [handleSaveAndContinue] 主键字段处理完成 ===');
-        debugger;
+        // 构建 PkFieldName 字符串（所有 Entry 主键去重后用逗号拼接）
+        const allPkFieldNames = Array.from(selectedEntryPkFields).join(',');
         
         const saveData = {
             ...formData,
             SelectedFormId: selectedForm,
             SelectedFields: selectedFields,
-            PkFieldName: pkFieldName || 'FID',
+            PkFieldName: allPkFieldNames || 'FID', // 如果没有 Entry 主键，使用默认 FID
             FilterCondition: filterCondition // 过滤条件
         };
         
         console.log('保存配置:', saveData);
         console.log(`已选择 ${selectedFields.length} 个字段:`, selectedFields.map(f => f.Key));
+        console.log('PkFieldName:', saveData.PkFieldName);
         
         try {
             // 获取飞书信息
@@ -800,6 +817,46 @@ export default function FormSelect() {
     const handleFieldFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const keyword = e.target.value.toLowerCase();
         setFieldSearchText(keyword);
+    };
+
+    /**
+     * 处理字段勾选变化，自动管理 Entry 主键的勾选状态
+     * @param fieldKey 被操作的字段 Key
+     * @param isChecked 是否被勾选
+     */
+    const handleFieldCheckChange = (fieldKey: string, isChecked: boolean) => {
+        if (isChecked) {
+            // 勾选字段：添加到选中列表
+            setSelectedFieldKeys(prev => [...prev, fieldKey]);
+            
+            // 自动勾选该字段所属 Entry 的主键
+            const field = fields.find(f => f.Key === fieldKey);
+            if (field && field.PkFieldName && !selectedFieldKeys.includes(field.PkFieldName)) {
+                setSelectedFieldKeys(prev => [...prev, field.PkFieldName!]);
+                console.log(`自动勾选 Entry 主键: ${field.PkFieldName}`);
+            }
+        } else {
+            // 取消勾选字段：从选中列表移除
+            setSelectedFieldKeys(prev => prev.filter(key => key !== fieldKey));
+            
+            // 检查该 Entry 是否还有其他字段被选中
+            const field = fields.find(f => f.Key === fieldKey);
+            if (field && field.PkFieldName) {
+                const entryKey = field.EntityKey;
+                const hasOtherFieldsInEntry = fields.some(f => 
+                    f.EntityKey === entryKey && 
+                    f.Key !== field.PkFieldName && 
+                    selectedFieldKeys.includes(f.Key) &&
+                    f.Key !== fieldKey // 排除当前正在取消的字段
+                );
+                
+                // 如果该 Entry 没有其他字段被选中，则取消勾选主键
+                if (!hasOtherFieldsInEntry && selectedFieldKeys.includes(field.PkFieldName)) {
+                    setSelectedFieldKeys(prev => prev.filter(key => key !== field.PkFieldName));
+                    console.log(`自动取消勾选 Entry 主键: ${field.PkFieldName}`);
+                }
+            }
+        }
     };
 
     /**
@@ -947,11 +1004,7 @@ export default function FormSelect() {
                 <Checkbox
                     checked={selectedFieldKeys.includes(record.Key)}
                     onChange={(e) => {
-                        if (e.target.checked) {
-                            setSelectedFieldKeys([...selectedFieldKeys, record.Key]);
-                        } else {
-                            setSelectedFieldKeys(selectedFieldKeys.filter(key => key !== record.Key));
-                        }
+                        handleFieldCheckChange(record.Key, e.target.checked);
                     }}
                 />
             ),
