@@ -361,11 +361,41 @@ export default function FormSelect() {
                                     DataType: '整数',
                                     ElementType: 3, // 整数类型
                                     FieldType: 2, // 飞书字段类型：数字
-                                    Property: { formatter: "#0" },
+                                    Property: {},
                                     PkFieldName: entryPkFieldName // 主键字段的 PkFieldName 指向自己
                                 };
                                 
                                 fieldList.push(pkField);
+                                
+                                // 添加 entry 的序号字段到字段列表（如果存在）
+                                if (entry.SeqFieldKey) {
+                                    // 根据规则生成序号字段的 Key（与主键字段相同的逻辑）
+                                    let seqFieldName: string;
+                                    if (needReturnData.PkFieldName === entryPkFieldNameRaw) {
+                                        // 如果主键字段没有加前缀，序号字段也不加
+                                        seqFieldName = entry.SeqFieldKey;
+                                    } else {
+                                        // 否则加上 entry.Key 前缀
+                                        seqFieldName = `${entryKey}_${entry.SeqFieldKey}`;
+                                    }
+                                    
+                                    const seqField: MetadataField = {
+                                        Key: seqFieldName,
+                                        FieldName: seqFieldName,
+                                        PropertyName: seqFieldName,
+                                        Name: `${entryName}序号`,
+                                        EntityKey: entryKey,
+                                        EntityName: entryName,
+                                        DataType: '整数',
+                                        ElementType: 3, // 整数类型
+                                        FieldType: 2, // 飞书字段类型：数字
+                                        Property: {},
+                                        PkFieldName: entryPkFieldName // 序号字段的 PkFieldName 指向所属 entry 的主键
+                                    };
+                                    
+                                    fieldList.push(seqField);
+                                    console.log(`  已添加 Entry ${entryKey} 的序号字段:`, seqFieldName, `(原始: ${entry.SeqFieldKey})`);
+                                }
                                 
                                 // 处理 entry 的其他字段
                                 const entryFields = entry.Fields.map((field: any) => {
