@@ -165,6 +165,25 @@ app.post("/api/records", async (req, res) => {
         // 调用 executeBillQuery 获取数据
         const result = await executeBillQuery(queryParams);
         
+        // 检查金蝶 API 是否返回错误
+        // 金蝶 ExecuteBillQuery 返回格式: [[{ Result: { ResponseStatus: { IsSuccess, Errors } }, ... }]]
+        if (Array.isArray(result) && result.length > 0 && Array.isArray(result[0]) && result[0].length > 0 && result[0][0] && result[0][0].Result) {
+            const responseStatus = result[0][0].Result.ResponseStatus;
+            if (responseStatus && responseStatus.IsSuccess === false) {
+                const errorMessage = responseStatus.Errors && responseStatus.Errors.length > 0 
+                    ? responseStatus.Errors[0].Message 
+                    : '金蝶 API 查询失败';
+                
+                console.error('金蝶 API 返回错误:', errorMessage);
+                
+                return res.status(500).json({
+                    code: 500,
+                    message: errorMessage,
+                    error: errorMessage
+                });
+            }
+        }
+        
         // 将金蝶返回的二维数组转换为 getTableRecords 格式
         const formattedRecords = {
             nextPageToken: (pageIndex+1).toString(),

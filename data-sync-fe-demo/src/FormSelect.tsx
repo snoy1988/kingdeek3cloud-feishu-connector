@@ -433,6 +433,106 @@ export default function FormSelect() {
                         });
                         
                         console.log('所有 Entrys 解析完成，总字段数:', fieldList.length);
+                        
+                        // 解析 LinkSet 中的源单字段（已临时注释）
+                        /*
+                        if (needReturnData.LinkSet && needReturnData.LinkSet.IsNeedLinkTable && needReturnData.LinkSet.LinkEntitys) {
+                            console.log('检测到 LinkSet，开始解析源单字段...');
+                            
+                            needReturnData.LinkSet.LinkEntitys.forEach((linkEntity: any) => {
+                                const linkKey = linkEntity.Key; // 如 "FPOOrderEntry_Link"
+                                const srcBillNoKey = linkEntity.SrcBillNoKey; // 如 "FSrcBillNo"
+                                const srcBillTypeKey = linkEntity.SrcBillTypeKey; // 如 "FSrcBillTypeId"
+                                
+                                // 构建源单ID字段的 Key
+                                const srcBillIdFieldName = `${linkKey}_FSBILLID`;
+                                
+                                // 构建源单明细ID字段的 Key
+                                const srcBillDetailIdFieldName = `${linkKey}_FSID`;
+                                
+                                // 源单单号和源单类型直接使用 SrcBillNoKey 和 SrcBillTypeKey 的值
+                                const srcBillNoFieldName = srcBillNoKey;
+                                const srcBillTypeFieldName = srcBillTypeKey;
+                                
+                                // 添加源单单据ID字段
+                                const srcBillIdField: MetadataField = {
+                                    Key: srcBillIdFieldName,
+                                    FieldName: srcBillIdFieldName,
+                                    PropertyName: srcBillIdFieldName,
+                                    Name: '源单单据ID',
+                                    EntityKey: linkKey,
+                                    EntityName: '源单信息',
+                                    DataType: '整数',
+                                    ElementType: 3,
+                                    FieldType: 2,
+                                    Property: {},
+                                    PkFieldName: srcBillDetailIdFieldName // 指向源单明细ID（主键）
+                                };
+                                
+                                fieldList.push(srcBillIdField);
+                                
+                                // 添加源单明细ID字段
+                                const srcBillDetailIdField: MetadataField = {
+                                    Key: srcBillDetailIdFieldName,
+                                    FieldName: srcBillDetailIdFieldName,
+                                    PropertyName: srcBillDetailIdFieldName,
+                                    Name: '源单明细ID',
+                                    EntityKey: linkKey,
+                                    EntityName: '源单信息',
+                                    DataType: '整数',
+                                    ElementType: 3,
+                                    FieldType: 2,
+                                    Property: {},
+                                    PkFieldName: srcBillDetailIdFieldName // 指向源单ID
+                                };
+                                
+                                fieldList.push(srcBillDetailIdField);
+                                
+                                // 添加源单单号字段
+                                const srcBillNoField: MetadataField = {
+                                    Key: srcBillNoFieldName,
+                                    FieldName: srcBillNoFieldName,
+                                    PropertyName: srcBillNoFieldName,
+                                    Name: '源单单号',
+                                    EntityKey: linkKey,
+                                    EntityName: '源单信息',
+                                    DataType: '文本',
+                                    ElementType: 1,
+                                    FieldType: 1,
+                                    Property: {},
+                                    PkFieldName: srcBillDetailIdFieldName // 指向源单ID
+                                };
+                                
+                                fieldList.push(srcBillNoField);
+                                
+                                // 添加源单类型字段
+                                const srcBillTypeField: MetadataField = {
+                                    Key: srcBillTypeFieldName,
+                                    FieldName: srcBillTypeFieldName,
+                                    PropertyName: srcBillTypeFieldName,
+                                    Name: '源单类型',
+                                    EntityKey: linkKey,
+                                    EntityName: '源单信息',
+                                    DataType: '文本',
+                                    ElementType: 10,
+                                    FieldType: 1,
+                                    Property: {},
+                                    PkFieldName: srcBillDetailIdFieldName // 指向源单ID
+                                };
+                                
+                                fieldList.push(srcBillTypeField);
+                                
+                                console.log(`  已添加 LinkEntity ${linkKey} 的源单字段:`, {
+                                    srcBillId: srcBillIdFieldName,
+                                    srcBillDetailId: srcBillDetailIdFieldName + ' (主键)',
+                                    srcBillNo: srcBillNoFieldName,
+                                    srcBillType: srcBillTypeFieldName
+                                });
+                            });
+                            
+                            console.log('LinkSet 解析完成，当前总字段数:', fieldList.length);
+                        }
+                        */
                     }
                     // 情况 3: 直接是数组
                     else if (Array.isArray(needReturnData)) {
@@ -865,6 +965,20 @@ export default function FormSelect() {
                 setSelectedFieldKeys(prev => [...prev, field.PkFieldName!]);
                 console.log(`自动勾选 Entry 主键: ${field.PkFieldName}`);
             }
+            
+            // 特殊处理：如果勾选的是源单单据ID、源单单号或源单类型，自动勾选源单明细ID（LinkSet 相关，已注释）
+            /*
+            if (field && field.EntityName === '源单信息') {
+                // 找到对应的 LinkEntity 的源单明细ID字段
+                const linkKey = field.EntityKey;
+                const srcBillDetailIdKey = `${linkKey}_FSID`;
+                
+                if (!selectedFieldKeys.includes(srcBillDetailIdKey)) {
+                    setSelectedFieldKeys(prev => [...prev, srcBillDetailIdKey]);
+                    console.log(`自动勾选源单明细ID（主键）: ${srcBillDetailIdKey}`);
+                }
+            }
+            */
         } else {
             // 取消勾选字段：从选中列表移除
             setSelectedFieldKeys(prev => prev.filter(key => key !== fieldKey));
@@ -886,6 +1000,27 @@ export default function FormSelect() {
                     console.log(`自动取消勾选 Entry 主键: ${field.PkFieldName}`);
                 }
             }
+            
+            // 特殊处理：如果取消勾选的是源单明细ID，同时取消勾选相关的源单字段（LinkSet 相关，已注释）
+            /*
+            if (field && field.EntityName === '源单信息' && field.Key.endsWith('_FSID')) {
+                const linkKey = field.EntityKey;
+                
+                // 查找所有 EntityKey 相同的源单字段（除了源单明细ID自己）
+                const allSourceBillFields = fields.filter(f => 
+                    f.EntityKey === linkKey && 
+                    f.EntityName === '源单信息' && 
+                    f.Key !== field.Key
+                );
+                
+                allSourceBillFields.forEach(relatedField => {
+                    if (selectedFieldKeys.includes(relatedField.Key)) {
+                        setSelectedFieldKeys(prev => prev.filter(key => key !== relatedField.Key));
+                        console.log(`自动取消勾选源单字段: ${relatedField.Key}`);
+                    }
+                });
+            }
+            */
         }
     };
 
@@ -905,9 +1040,9 @@ export default function FormSelect() {
         const baseKey = field.Key;
         
         // 定义需要添加编码字段的类型：组织、基础资料、计量单位、多类别基础资料
-        const needNumberFieldTypes = [7, 13, 16, 46, 51];
+        const needNumberFieldTypes = [7, 13, 16, 46];
         // 定义需要添加名称字段的类型：组织、基础资料、计量单位、多类别基础资料、用户类型
-        const needNameFieldTypes = [7, 13, 16, 46, 51, 17, 18, 27, 84517];
+        const needNameFieldTypes = [7, 13, 16, 46, 17, 18, 27, 84517];
         
         const elementType = field.ElementType;
         if (!elementType) return; // 如果没有 ElementType，直接返回
