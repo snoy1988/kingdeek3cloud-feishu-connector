@@ -18,7 +18,9 @@
       "name": "整数",
       "description": "整数类型",
       "fieldType": 2,
-      "property": {}
+      "property": {
+        "formatter":"0"
+      }
     },
     "4": {
       "name": "日期",

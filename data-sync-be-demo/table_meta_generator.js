@@ -23,7 +23,7 @@ function generateTableMeta(datasourceConfig) {
             fieldType: field.FieldType,
             isPrimary: isPrimary, // 第一个字段设为主键
             description: `${field.EntityName} - ${field.PropertyName || ''}`,
-            property: field.property
+            property: field.Property
         };
     });
     
