@@ -369,7 +369,7 @@
     "84": {
       "name": "附件 (数据库)",
       "description": "附件类型",
-      "fieldType": 1,
+      "fieldType": 15,
       "property": {}
     },
     "85": {
@@ -393,7 +393,7 @@
     "1011": {
       "name": "图片 (数据库)",
       "description": "图片类型",
-      "fieldType": 1,
+      "fieldType": 15,
       "property": {}
     },
     "1020": {

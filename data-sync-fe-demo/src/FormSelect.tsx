@@ -119,6 +119,70 @@ export default function FormSelect() {
             .catch(err => console.error('加载字段类型映射失败:', err));
     }, []);
 
+    /**
+     * 解析金蝶 API 返回的 .NET 类型字符串，转换为字段配置
+     * @param kdPkFieldType - 金蝶 API 返回的主键字段类型，如 "System.Int32, mscorlib, ..."
+     * @param kingdeeFieldTypeMap - 金蝶字段类型映射表
+     * @returns 包含 kingdeeElementType、feishuFieldType、DataTypeName 和 Property 的对象
+     */
+    const parseDotNetType = (
+        kdPkFieldType: string | undefined,
+        kingdeeFieldTypeMap: any
+    ): { kingdeeElementType: number; feishuFieldType: number; dataTypeName: string; property: any } => {
+        // 默认值：整数类型
+        let kingdeeElementType = 3;
+        let feishuFieldType = 2; // 数字类型
+        let dataTypeName = '整数';
+        let property = { formatter: "#0" };
+        
+        if (!kdPkFieldType) {
+            return { kingdeeElementType, feishuFieldType, dataTypeName, property };
+        }
+        
+        // 解析 .NET 类型字符串，例如："System.Int32, mscorlib, ..."
+        const typeMatch = kdPkFieldType.match(/System\.(\w+)/);
+        if (!typeMatch) {
+            return { kingdeeElementType, feishuFieldType, dataTypeName, property };
+        }
+        
+        const systemType = typeMatch[1];
+        console.log('解析出的 .NET 类型:', systemType);
+        
+        // .NET 类型到金蝶 ElementType 的映射表
+        const typeMapping: Record<string, number> = {
+            'Int32': 3,      // 整数
+            'Int64': 3,      // 整数
+            'Int16': 3,      // 整数
+            'String': 1,     // 文本
+            'Decimal': 2,    // 小数
+            'Double': 2,     // 小数
+            'Single': 2,     // 小数
+            'Boolean': 8,    // 复选框
+            'DateTime': 4,   // 日期
+        };
+        
+        if (typeMapping[systemType]) {
+            kingdeeElementType = typeMapping[systemType];
+            
+            // 从 kingdeeFieldTypeMap 中获取对应的配置
+            const typeConfig = kingdeeFieldTypeMap[String(kingdeeElementType)];
+            if (typeConfig) {
+                feishuFieldType = typeConfig.fieldType;
+                dataTypeName = typeConfig.name;
+                property = typeConfig.property || {};
+            }
+            
+            console.log('匹配到的字段类型:', {
+                KingdeeElementType: kingdeeElementType,
+                FeishuFieldType: feishuFieldType,
+                DataType: dataTypeName,
+                Property: property
+            });
+        }
+        
+        return { kingdeeElementType, feishuFieldType, dataTypeName, property };
+    };
+
     // 加载单据列表
     const loadForms = async (currentIsCreate: boolean, currentSavedConfig: any) => {
         try {
@@ -232,49 +296,12 @@ export default function FormSelect() {
                     console.log('pkFieldName:', pkFieldName);
                     console.log('needReturnData.PkFieldType:', pkFieldType);
                     
-                    // 根据 PkFieldType 匹配金蝶字段类型
-                    let pkElementType = 3; // 默认整数类型
-                    let pkDataTypeName = '整数';
-                    let pkProperty = { formatter: "#0" };
-                    
-                    if (pkFieldType) {
-                        // 解析 .NET 类型字符串，例如："System.Int32, mscorlib, ..."
-                        const typeMatch = pkFieldType.match(/System\.(\w+)/);
-                        if (typeMatch) {
-                            const systemType = typeMatch[1];
-                            console.log('解析出的 .NET 类型:', systemType);
-                            
-                            // 根据 .NET 类型映射到金蝶 ElementType
-                            const typeMapping: Record<string, number> = {
-                                'Int32': 3,      // 整数
-                                'Int64': 3,      // 整数
-                                'Int16': 3,      // 整数
-                                'String': 1,     // 文本
-                                'Decimal': 2,    // 小数
-                                'Double': 2,     // 小数
-                                'Single': 2,     // 小数
-                                'Boolean': 8,    // 复选框
-                                'DateTime': 4,   // 日期
-                            };
-                            
-                            if (typeMapping[systemType]) {
-                                pkElementType = typeMapping[systemType];
-                                
-                                // 从 kingdeeFieldTypeMap 中获取对应的配置
-                                const typeConfig = kingdeeFieldTypeMap[String(pkElementType)];
-                                if (typeConfig) {
-                                    pkDataTypeName = typeConfig.name;
-                                    pkProperty = typeConfig.property || {};
-                                }
-                                
-                                console.log('匹配到的金蝶字段类型:', {
-                                    ElementType: pkElementType,
-                                    DataType: pkDataTypeName,
-                                    Property: pkProperty
-                                });
-                            }
-                        }
-                    }
+                    // 使用封装的方法解析 .NET 类型
+                    const pkTypeInfo = parseDotNetType(pkFieldType, kingdeeFieldTypeMap);
+                    const kingdeeElementType = pkTypeInfo.kingdeeElementType;
+                    const feishuFieldType = pkTypeInfo.feishuFieldType;
+                    const pkDataTypeName = pkTypeInfo.dataTypeName;
+                    const pkProperty = pkTypeInfo.property;
                     
                     // 解析字段信息（支持多种数据结构）
                     let fieldList: MetadataField[] = [];
@@ -350,6 +377,13 @@ export default function FormSelect() {
                                 
                                 console.log(`  Entry ${entryKey} 主键字段: ${entryPkFieldName} (原始: ${entryPkFieldNameRaw}), 名称: ${entryName}`);
                                 
+                                // 获取 Entry 主键字段的类型信息
+                                const entryPkFieldType = entry.PkFieldType; // 从 Entry 中获取主键字段类型
+                                console.log(`  Entry ${entryKey} PkFieldType:`, entryPkFieldType);
+                                
+                                // 使用封装的方法解析 .NET 类型
+                                const entryPkTypeInfo = parseDotNetType(entryPkFieldType, kingdeeFieldTypeMap);
+                                
                                 // 添加 entry 的主键字段到字段列表（主键不在 entry.Fields 中，需要手动添加）
                                 const pkField: MetadataField = {
                                     Key: entryPkFieldName,
@@ -358,10 +392,10 @@ export default function FormSelect() {
                                     Name: `${entryName}主键`,
                                     EntityKey: entryKey,
                                     EntityName: entryName,
-                                    DataType: '整数',
-                                    ElementType: 3, // 整数类型
-                                    FieldType: 2, // 飞书字段类型：数字
-                                    Property: {},
+                                    DataType: entryPkTypeInfo.dataTypeName,
+                                    ElementType: entryPkTypeInfo.kingdeeElementType,
+                                    FieldType: entryPkTypeInfo.feishuFieldType,
+                                    Property: entryPkTypeInfo.property,
                                     PkFieldName: entryPkFieldName // 主键字段的 PkFieldName 指向自己
                                 };
                                 

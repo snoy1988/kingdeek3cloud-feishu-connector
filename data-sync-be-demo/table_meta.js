@@ -72,7 +72,7 @@ const getTableMeta = () => {
         },
       },
       {
-        fieldId: "fid_11",
+        fieldId: "fid_9",
         fieldName: "电话",
         fieldType: 9,
         isPrimary: false,
@@ -80,7 +80,7 @@ const getTableMeta = () => {
         property: {},
       },
       {
-        fieldId: "fid_12",
+        fieldId: "fid_10",
         fieldName: "url",
         fieldType: 10,
         isPrimary: false,
@@ -88,7 +88,7 @@ const getTableMeta = () => {
         property: {},
       },
       {
-        fieldId: "fid_9",
+        fieldId: "fid_11",
         fieldName: "进度",
         fieldType: 11,
         isPrimary: false,
@@ -101,7 +101,7 @@ const getTableMeta = () => {
         },
       },
       {
-        fieldId: "fid_10",
+        fieldId: "fid_12",
         fieldName: "评分",
         fieldType: 12,
         isPrimary: false,
@@ -112,6 +112,34 @@ const getTableMeta = () => {
           symbol: "smile",
         },
       },
+      {
+        fieldId: "fid_13",
+        fieldName: "地理位置",
+        fieldType: 13,
+        isPrimary: false,
+        description: "xxx",
+      },
+      {
+        fieldId: "fid_14",
+        fieldName: "人员",
+        fieldType: 14,
+        isPrimary: false,
+        description: "xxx",
+      },
+      {
+        fieldId: "fid_15",
+        fieldName: "附件",
+        fieldType: 15,
+        isPrimary: false,
+        description: "xxx",
+      },
+      {
+        fieldId: "fid_16",
+        fieldName: "群组",
+        fieldType: 16,
+        isPrimary: false,
+        description: "xxx",
+      }
     ],
   };
 };
