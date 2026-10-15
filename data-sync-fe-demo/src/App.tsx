@@ -247,7 +247,7 @@ function ConfigForm() {
                     rules={[{ required: true, message: '请输入应用 ID' }]}
                     extra={<span style={{ color: '#999', fontSize: '11px' }}>在金蝶云开放平台创建的应用 ID</span>}
                 >
-                    <Input placeholder="请输入应用 ID" size="middle" />
+                    <Input.Password visibilityToggle={false} placeholder="请输入应用 ID" size="middle" />
                 </Form.Item>
                             
                 <Form.Item
@@ -256,7 +256,7 @@ function ConfigForm() {
                     rules={[{ required: true, message: '请输入应用密钥' }]}
                     extra={<span style={{ color: '#999', fontSize: '11px' }}>与 appId 配对使用的密钥</span>}
                 >
-                    <Input.Password placeholder="请输入应用密钥" size="middle" />
+                    <Input.Password visibilityToggle={false} placeholder="请输入应用密钥" size="middle" />
                 </Form.Item>
             
                 {/* 非必填项 */}
